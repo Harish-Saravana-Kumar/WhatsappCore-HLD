@@ -58,6 +58,10 @@ public class Chat {
         return messages.isEmpty() ? null : messages.get(messages.size() - 1);
     }
 
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
     public void displayChatHistory() {
         System.out.println("\n=== Chat History (Chat ID: " + chatId + ") ===");
         if (messages.isEmpty()) {

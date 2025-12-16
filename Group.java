@@ -18,6 +18,16 @@ public class Group {
         this.createdAt = new Date();
     }
 
+    // Constructor for loading from database
+    public Group(String groupId, String groupName, String adminId) {
+        this.groupId = groupId;
+        this.groupName = groupName;
+        this.adminId = adminId;
+        this.members = new ArrayList<>();
+        this.messages = new ArrayList<>();
+        this.createdAt = new Date();
+    }
+
     public boolean addMember(String userId) {
         if (!members.contains(userId)) {
             members.add(userId);
@@ -75,6 +85,10 @@ public class Group {
 
     public List<Message> getMessages() {
         return new ArrayList<>(messages);
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
     public void displayGroupInfo() {

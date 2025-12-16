@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp - Chat Application</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>WhatsApp</h1>
+                <p>Secure. Reliable. Private.</p>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab('login-tab')">Login</button>
+                <button class="tab-button" onclick="switchTab('register-tab')">Register</button>
+            </div>
+            
+            <!-- Login Tab -->
+            <div id="login-tab" class="tab-content active">
+                <div class="form-group">
+                    <label>Phone Number:</label>
+                    <input type="text" id="loginPhone" placeholder="Enter your phone number" maxlength="15">
+                </div>
+                <button class="btn btn-primary" onclick="login()">Login</button>
+            </div>
+            
+            <!-- Register Tab -->
+            <div id="register-tab" class="tab-content">
+                <div class="form-group">
+                    <label>Profile Name:</label>
+                    <input type="text" id="registerName" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number:</label>
+                    <input type="text" id="registerPhone" placeholder="Enter your phone number" maxlength="15">
+                </div>
+                <button class="btn btn-success" onclick="register()">Register</button>
+            </div>
+            
+            <div id="loginStatus" class="status-message"></div>
+        </div>
+    </div>
+    
+    <!-- Main Chat Screen -->
+    <div id="mainScreen" class="screen">
+        <div class="app-container">
+            <!-- Header -->
+            <div class="app-header">
+                <h2>WhatsApp</h2>
+                <div class="header-actions">
+                    <button class="header-btn" onclick="showProfile()">👤 Profile</button>
+                    <button class="header-btn logout-btn" onclick="logout()">🚪 Logout</button>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <div class="tabs-container">
+                        <button class="tab-button active" onclick="switchSidebar('chats')">💬 Chats</button>
+                        <button class="tab-button" onclick="switchSidebar('groups')">👥 Groups</button>
+                        <button class="tab-button" onclick="switchSidebar('friends')">👫 Friends</button>
+                    </div>
+                    
+                    <!-- Chats Panel -->
+                    <div id="chats-panel" class="panel active">
+                        <button class="new-btn" onclick="showNewChatDialog()">+ New Chat</button>
+                        <div id="chatsList" class="items-list"></div>
+                    </div>
+                    
+                    <!-- Groups Panel -->
+                    <div id="groups-panel" class="panel">
+                        <button class="new-btn" onclick="showCreateGroupDialog()">+ New Group</button>
+                        <div id="groupsList" class="items-list"></div>
+                    </div>
+                    
+                    <!-- Friends Panel -->
+                    <div id="friends-panel" class="panel">
+                        <button class="new-btn" onclick="showAddFriendDialog()">+ Add Friend</button>
+                        <div id="friendsList" class="items-list"></div>
+                    </div>
+                </div>
+                
+                <!-- Chat Window -->
+                <div class="chat-window">
+                    <div id="chatHeader" class="chat-header">
+                        <h3>Select a chat to start messaging</h3>
+                    </div>
+                    
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="empty-state">
+                            <p>👋 Welcome to WhatsApp</p>
+                            <p>Select a chat from the left sidebar to start messaging</p>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-area">
+                        <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
+                        <button class="send-btn" onclick="sendMessage()">📤 Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dialogs -->
+    <div id="dialog-overlay" class="dialog-overlay" onclick="closeDialog()"></div>
+    
+    <!-- New Chat Dialog -->
+    <div id="newChatDialog" class="dialog">
+        <div class="dialog-content">
+            <h3>Start New Chat</h3>
+            <label>Select a friend:</label>
+            <select id="friendSelect"></select>
+            <div class="dialog-buttons">
+                <button class="btn btn-primary" onclick="createNewChat()">Start Chat</button>
+                <button class="btn btn-cancel" onclick="closeDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Group Dialog -->
+    <div id="createGroupDialog" class="dialog">
+        <div class="dialog-content">
+            <h3>Create New Group</h3>
+            <div class="form-group">
+                <label>Group Name:</label>
+                <input type="text" id="groupNameInput" placeholder="Enter group name" maxlength="50">
+            </div>
+            <div class="form-group">
+                <label>Add Members (select friends):</label>
+                <div id="membersList" style="border: 1px solid #ddd; border-radius: 8px; padding: 10px; max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+            </div>
+            <div class="dialog-buttons">
+                <button class="btn btn-success" onclick="createNewGroup()">Create Group</button>
+                <button class="btn btn-cancel" onclick="closeDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Friend Dialog -->
+    <div id="addFriendDialog" class="dialog">
+        <div class="dialog-content">
+            <h3>Add Friend</h3>
+            <div class="form-group">
+                <label>Friend's Phone Number:</label>
+                <input type="text" id="friendPhoneInput" placeholder="Enter friend's phone number" maxlength="15">
+            </div>
+            <div class="dialog-buttons">
+                <button class="btn btn-primary" onclick="addFriend()">Add Friend</button>
+                <button class="btn btn-cancel" onclick="closeDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Dialog -->
+    <div id="profileDialog" class="dialog">
+        <div class="dialog-content">
+            <h3>My Profile</h3>
+            <div id="profileContent" class="profile-info"></div>
+            <button class="btn btn-cancel" onclick="closeDialog()">Close</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

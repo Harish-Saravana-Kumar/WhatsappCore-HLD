@@ -5,11 +5,34 @@ public class whatsappCore {
     private static ChatManager chatManager = new ChatManager();
     private static GroupManager groupManager = new GroupManager();
     private static List<User> registeredUsers = new ArrayList<>();
+    
+    // Database repositories
+    private static UserRepository userRepository;
+    private static ChatRepository chatRepository;
+    private static GroupRepository groupRepository;
+    private static MessageRepository messageRepository;
 
     public static void main(String[] args) {
         System.out.println("\n");
         System.out.println("Welcome to WhatsApp Core LLD!");
+        System.out.println("Initializing MongoDB Connection...");
         System.out.println("\n");
+
+        // Initialize database repositories
+        try {
+            DatabaseConnection.getInstance();
+            userRepository = new UserRepository();
+            chatRepository = new ChatRepository();
+            groupRepository = new GroupRepository();
+            messageRepository = new MessageRepository();
+            
+            // Load users from database
+            registeredUsers.addAll(userRepository.getAllUsers());
+            System.out.println("✓ Loaded " + registeredUsers.size() + " users from database\n");
+        } catch (Exception e) {
+            System.out.println("✗ Failed to initialize database: " + e.getMessage());
+            System.out.println("Proceeding without database persistence.\n");
+        }
 
         Scanner sc = new Scanner(System.in);
         int choice;
@@ -43,6 +66,7 @@ public class whatsappCore {
                         break;
                     case 7:
                         System.out.println("\n👋 Exiting WhatsApp Core. Goodbye!\n");
+                        DatabaseConnection.getInstance().close();
                         System.exit(0);
                         break;
                     default:
@@ -150,6 +174,11 @@ public class whatsappCore {
         currentUser = new User(userId, profileName, phoneNumber);
         registeredUsers.add(currentUser);
 
+        // Push user to database
+        if (userRepository != null) {
+            userRepository.saveUser(currentUser);
+        }
+
         System.out.println("\n✅ User Registered Successfully!");
         System.out.println("User ID: " + userId);
         System.out.println("Profile Name: " + profileName);
@@ -178,6 +207,10 @@ public class whatsappCore {
                 System.out.print("Enter friend ID to remove: ");
                 String friendToRemove = sc.nextLine();
                 if (currentUser.removeFriend(friendToRemove)) {
+                    // Update user in database
+                    if (userRepository != null) {
+                        userRepository.updateUser(currentUser);
+                    }
                     System.out.println("✅ Friend removed successfully!\n");
                 } else {
                     System.out.println("Friend not found!\n");
@@ -226,6 +259,10 @@ public class whatsappCore {
             if (selection > 0 && selection <= availableUsers.size()) {
                 User selectedFriend = availableUsers.get(selection - 1);
                 if (currentUser.addFriend(selectedFriend.getUserId())) {
+                    // Update user in database
+                    if (userRepository != null) {
+                        userRepository.updateUser(currentUser);
+                    }
                     System.out.println("\n✅ " + selectedFriend.getProfilename() + " added as friend!\n");
                 }
             } else {
@@ -291,6 +328,11 @@ public class whatsappCore {
                 System.out.print("Enter message: ");
                 String messageContent = sc.nextLine();
                 chatManager.sendMessage(chatToSend, currentUser.getUserId(), messageContent);
+                
+                // Push chat and messages to database
+                if (chatRepository != null) {
+                    chatRepository.updateChat(chatToSend);
+                }
                 break;
 
             case 3:
@@ -302,6 +344,11 @@ public class whatsappCore {
                 System.out.print("Enter reply message: ");
                 String replyContent = sc.nextLine();
                 chatManager.sendReply(chatForReply, parentMsgId, currentUser.getUserId(), replyContent);
+                
+                // Push updated chat to database
+                if (chatRepository != null) {
+                    chatRepository.updateChat(chatForReply);
+                }
                 break;
 
             case 4:
@@ -342,6 +389,11 @@ public class whatsappCore {
                 String groupName = sc.nextLine();
                 Group group = groupManager.createGroup(groupName, currentUser.getUserId());
                 currentUser.addGroup(group);
+                
+                // Push group to database
+                if (groupRepository != null) {
+                    groupRepository.saveGroup(group);
+                }
                 System.out.println("Group created successfully! Group ID: " + group.getGroupId());
                 break;
 
@@ -351,6 +403,13 @@ public class whatsappCore {
                 System.out.print("Enter member ID to add: ");
                 String memberId = sc.nextLine();
                 if (groupManager.addMemberToGroup(groupId, memberId)) {
+                    // Update group in database
+                    if (groupRepository != null) {
+                        Group updatedGroup = groupManager.getGroupById(groupId);
+                        if (updatedGroup != null) {
+                            groupRepository.updateGroup(updatedGroup);
+                        }
+                    }
                     System.out.println("Member added successfully!");
                 } else {
                     System.out.println("Failed to add member!");
@@ -363,6 +422,14 @@ public class whatsappCore {
                 System.out.print("Enter message: ");
                 String groupMessage = sc.nextLine();
                 groupManager.sendGroupMessage(groupIdMsg, currentUser.getUserId(), groupMessage);
+                
+                // Push updated group to database
+                if (groupRepository != null) {
+                    Group updatedGroup = groupManager.getGroupById(groupIdMsg);
+                    if (updatedGroup != null) {
+                        groupRepository.updateGroup(updatedGroup);
+                    }
+                }
                 break;
 
             case 4:
@@ -373,6 +440,14 @@ public class whatsappCore {
                 System.out.print("Enter reply message: ");
                 String groupReplyContent = sc.nextLine();
                 groupManager.sendGroupReply(groupIdReply, parentGroupMsgId, currentUser.getUserId(), groupReplyContent);
+                
+                // Push updated group to database
+                if (groupRepository != null) {
+                    Group updatedGroup = groupManager.getGroupById(groupIdReply);
+                    if (updatedGroup != null) {
+                        groupRepository.updateGroup(updatedGroup);
+                    }
+                }
                 break;
 
             case 5:

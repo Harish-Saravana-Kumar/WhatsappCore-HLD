@@ -82,6 +82,11 @@ public class User {
         }
     }
 
+    public void addGroupId(String groupId) {
+        // This is a placeholder - in real implementation, we'd track group IDs
+        // For now, we rely on the group being fully loaded from the database
+    }
+
     public Group findGroupById(String groupId) {
         for (Group group : groups) {
             if (group.getGroupId().equals(groupId)) {
