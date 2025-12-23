@@ -19,21 +19,6 @@ const CONFIG = {
     })()
 };
 
-// Global state
-let currentUser = null;
-let currentChat = null;
-let currentGroup = null;
-let currentFriendId = null;
-let currentFriendName = null;
-const API_URL = CONFIG.API_URL;
-let filteredChats = [];
-let filteredGroups = [];
-let filteredFriends = [];
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✓ WhatsApp Frontend loaded');
-    console.log('API URL:', CONFIG.API_URL);
-    console.log('WebSocket URL:', CONFIG.WS_URL);
-    setupSearchListeners();
-});
+console.log('✓ WhatsApp Frontend loaded');
+console.log('API URL:', CONFIG.API_URL);
+console.log('WebSocket URL:', CONFIG.WS_URL);
