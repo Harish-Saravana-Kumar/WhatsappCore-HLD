@@ -22,7 +22,6 @@ services:
   - type: web
     name: whatsapp-frontend
     runtime: static
-    plan: free
     buildCommand: echo "No build needed for static site"
     staticPublishPath: ./frontend/public
     routes:
