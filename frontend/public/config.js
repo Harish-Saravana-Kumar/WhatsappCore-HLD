@@ -6,7 +6,7 @@ const CONFIG = {
             return 'http://localhost:8080/api';
         }
         // Use environment variable if available (Vercel), otherwise use default Render URL
-        return window.ENV_BACKEND_URL || 'https://whatsapp-backend.onrender.com/api';
+        return window.ENV_BACKEND_URL || 'https://whatsapp-backend-paww.onrender.com/api';
     })(),
     
     WS_URL: (() => {
@@ -14,8 +14,8 @@ const CONFIG = {
             return 'ws://localhost:8081';
         }
         // Use environment variable if available (Vercel), otherwise use default Render URL
-        const backendUrl = window.ENV_BACKEND_URL || 'https://whatsapp-backend.onrender.com';
-        return backendUrl.replace('https://', 'wss://').replace('/api', '') + ':8081';
+        const backendUrl = window.ENV_BACKEND_URL || 'https://whatsapp-backend-paww.onrender.com';
+        return backendUrl.replace('https://', 'wss://').replace('/api', '');
     })()
 };
 
