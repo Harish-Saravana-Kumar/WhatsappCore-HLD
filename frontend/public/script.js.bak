@@ -1,16 +1,16 @@
-// Global state - API_URL is now defined in config.js
+// Global state
 let currentUser = null;
 let currentChat = null;
 let currentGroup = null;
 let currentFriendId = null;
 let currentFriendName = null;
-// const API_URL is defined in config.js
+const API_URL = 'http://localhost:8080/api';
 let filteredChats = [];
 let filteredGroups = [];
 let filteredFriends = [];
 
 // Initialize
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     console.log('✓ WhatsApp Frontend loaded');
     setupSearchListeners();
 });
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupSearchListeners() {
     const searchBar = document.getElementById('sidebarSearch');
     if (searchBar) {
-        searchBar.addEventListener('input', function(e) {
+        searchBar.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             filterLists(query);
         });
@@ -30,22 +30,20 @@ function setupSearchListeners() {
 function filterLists(query) {
     const activePanel = document.querySelector('.panel.active');
     
-    if (activePanel && activePanel.id === 'chats-panel') {
+    if (activePanel.id === 'chats-panel') {
         filterChats(query);
-    } else if (activePanel && activePanel.id === 'groups-panel') {
+    } else if (activePanel.id === 'groups-panel') {
         filterGroups(query);
-    } else if (activePanel && activePanel.id === 'friends-panel') {
+    } else if (activePanel.id === 'friends-panel') {
         filterFriends(query);
     }
 }
 
 function filterChats(query) {
     const chatItems = document.querySelectorAll('#chatsList .item');
-    chatItems.forEach(function(item) {
-        const nameEl = item.querySelector('.item-name');
-        const subtitleEl = item.querySelector('.item-subtitle');
-        const name = nameEl ? nameEl.textContent.toLowerCase() : '';
-        const subtitle = subtitleEl ? subtitleEl.textContent.toLowerCase() : '';
+    chatItems.forEach(item => {
+        const name = item.querySelector('.item-name')?.textContent.toLowerCase() || '';
+        const subtitle = item.querySelector('.item-subtitle')?.textContent.toLowerCase() || '';
         if (name.includes(query) || subtitle.includes(query)) {
             item.style.display = 'block';
         } else {
@@ -56,11 +54,9 @@ function filterChats(query) {
 
 function filterGroups(query) {
     const groupItems = document.querySelectorAll('#groupsList .item');
-    groupItems.forEach(function(item) {
-        const nameEl = item.querySelector('.item-name');
-        const subtitleEl = item.querySelector('.item-subtitle');
-        const name = nameEl ? nameEl.textContent.toLowerCase() : '';
-        const subtitle = subtitleEl ? subtitleEl.textContent.toLowerCase() : '';
+    groupItems.forEach(item => {
+        const name = item.querySelector('.item-name')?.textContent.toLowerCase() || '';
+        const subtitle = item.querySelector('.item-subtitle')?.textContent.toLowerCase() || '';
         if (name.includes(query) || subtitle.includes(query)) {
             item.style.display = 'block';
         } else {
@@ -71,11 +67,9 @@ function filterGroups(query) {
 
 function filterFriends(query) {
     const friendItems = document.querySelectorAll('#friendsList .item');
-    friendItems.forEach(function(item) {
-        const nameEl = item.querySelector('.item-name');
-        const subtitleEl = item.querySelector('.item-subtitle');
-        const name = nameEl ? nameEl.textContent.toLowerCase() : '';
-        const subtitle = subtitleEl ? subtitleEl.textContent.toLowerCase() : '';
+    friendItems.forEach(item => {
+        const name = item.querySelector('.item-name')?.textContent.toLowerCase() || '';
+        const subtitle = item.querySelector('.item-subtitle')?.textContent.toLowerCase() || '';
         if (name.includes(query) || subtitle.includes(query)) {
             item.style.display = 'block';
         } else {
@@ -88,12 +82,12 @@ function filterFriends(query) {
 
 function switchTab(tabId) {
     // Hide all tabs
-    document.querySelectorAll('.tab-content').forEach(function(tab) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
     
     // Remove active class from buttons
-    document.querySelectorAll('.tab-button').forEach(function(btn) {
+    document.querySelectorAll('.tab-button').forEach(btn => {
         if (btn.onclick && btn.onclick.toString().includes(tabId)) {
             btn.classList.add('active');
         }
@@ -106,6 +100,7 @@ function switchTab(tabId) {
 async function register() {
     const name = document.getElementById('registerName').value.trim();
     const phone = document.getElementById('registerPhone').value.trim();
+    const statusDiv = document.getElementById('loginStatus');
     const btn = event.target;
     
     if (!name || !phone) {
@@ -119,7 +114,7 @@ async function register() {
     btn.innerHTML = '<span class="spinner"></span> Registering...';
     
     try {
-        const response = await fetch(API_URL + '/auth/register', {
+        const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ profileName: name, phoneNumber: phone })
@@ -128,13 +123,13 @@ async function register() {
         const data = await response.json();
         
         if (data.success) {
-            showStatus('Registration successful! Logging you in...', 'success');
+            showStatus('✓ Registration successful! Logging you in...', 'success');
             currentUser = {
                 userId: data.userId,
                 profileName: name,
                 phoneNumber: phone
             };
-            setTimeout(function() { switchScreen('main'); }, 1000);
+            setTimeout(() => switchScreen('main'), 1000);
             loadMainScreen();
         } else {
             showStatus(data.message || 'Registration failed', 'error');
@@ -143,7 +138,7 @@ async function register() {
         }
     } catch (error) {
         console.error('Register error:', error);
-        showStatus('Registration failed', 'error');
+        showStatus('✗ Registration failed', 'error');
         btn.disabled = false;
         btn.textContent = originalText;
     }
@@ -164,7 +159,7 @@ async function login() {
     btn.innerHTML = '<span class="spinner"></span> Logging in...';
     
     try {
-        const response = await fetch(API_URL + '/auth/login', {
+        const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phoneNumber: phone })
@@ -173,13 +168,13 @@ async function login() {
         const data = await response.json();
         
         if (data.success) {
-            showStatus('Login successful!', 'success');
+            showStatus('✓ Login successful!', 'success');
             currentUser = {
                 userId: data.userId,
                 profileName: data.profileName,
                 phoneNumber: phone
             };
-            setTimeout(function() { switchScreen('main'); }, 1000);
+            setTimeout(() => switchScreen('main'), 1000);
             loadMainScreen();
         } else {
             showStatus(data.message || 'Login failed', 'error');
@@ -188,7 +183,7 @@ async function login() {
         }
     } catch (error) {
         console.error('Login error:', error);
-        showStatus('Login failed', 'error');
+        showStatus('✗ Login failed', 'error');
         btn.disabled = false;
         btn.textContent = originalText;
     }
@@ -209,17 +204,17 @@ function logout() {
 function showStatus(message, type) {
     const statusDiv = document.getElementById('loginStatus');
     statusDiv.textContent = message;
-    statusDiv.className = 'status-message show ' + type;
+    statusDiv.className = `status-message show ${type}`;
     
     if (type === 'success') {
-        setTimeout(function() { statusDiv.classList.remove('show'); }, 3000);
+        setTimeout(() => statusDiv.classList.remove('show'), 3000);
     }
 }
 
 // ==================== Navigation Functions ====================
 
 function switchScreen(screenName) {
-    document.querySelectorAll('.screen').forEach(function(screen) {
+    document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
     });
     document.getElementById(screenName + 'Screen').classList.add('active');
@@ -231,12 +226,12 @@ function switchSidebar(panel) {
     currentFriendName = null;
     
     // Hide all panels
-    document.querySelectorAll('.panel').forEach(function(p) {
+    document.querySelectorAll('.panel').forEach(p => {
         p.classList.remove('active');
     });
     
     // Remove active from buttons
-    document.querySelectorAll('.tabs-container .tab-button').forEach(function(btn) {
+    document.querySelectorAll('.tabs-container .tab-button').forEach(btn => {
         btn.classList.remove('active');
     });
     
@@ -253,8 +248,8 @@ async function loadMainScreen() {
     await refreshFriends();
     populateFriendDropdown();
     
-    // Auto-refresh every 5 seconds
-    setInterval(async function() {
+    // Auto-refresh friends every 5 seconds to see newly added friends
+    setInterval(async () => {
         await refreshFriends();
         populateFriendDropdown();
     }, 5000);
@@ -262,17 +257,17 @@ async function loadMainScreen() {
 
 async function refreshChats() {
     try {
-        const response = await fetch(API_URL + '/chats?userId=' + currentUser.userId);
+        const response = await fetch(`${API_URL}/chats?userId=${currentUser.userId}`);
         const data = await response.json();
         
         const chatsList = document.getElementById('chatsList');
         chatsList.innerHTML = '';
         
         if (data.chats && data.chats.length > 0) {
-            data.chats.forEach(function(chat) {
+            for (const chat of data.chats) {
                 const chatEl = createChatElement(chat);
                 chatsList.appendChild(chatEl);
-            });
+            }
         } else {
             chatsList.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No chats yet</div>';
         }
@@ -283,17 +278,17 @@ async function refreshChats() {
 
 async function refreshGroups() {
     try {
-        const response = await fetch(API_URL + '/groups?userId=' + currentUser.userId);
+        const response = await fetch(`${API_URL}/groups?userId=${currentUser.userId}`);
         const data = await response.json();
         
         const groupsList = document.getElementById('groupsList');
         groupsList.innerHTML = '';
         
         if (data.groups && data.groups.length > 0) {
-            data.groups.forEach(function(group) {
+            for (const group of data.groups) {
                 const groupEl = createGroupElement(group);
                 groupsList.appendChild(groupEl);
-            });
+            }
         } else {
             groupsList.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No groups yet</div>';
         }
@@ -304,17 +299,17 @@ async function refreshGroups() {
 
 async function refreshFriends() {
     try {
-        const response = await fetch(API_URL + '/friends?userId=' + currentUser.userId);
+        const response = await fetch(`${API_URL}/friends?userId=${currentUser.userId}`);
         const data = await response.json();
         
         const friendsList = document.getElementById('friendsList');
         friendsList.innerHTML = '';
         
         if (data.friends && data.friends.length > 0) {
-            data.friends.forEach(function(friend) {
+            for (const friend of data.friends) {
                 const friendEl = createFriendElement(friend);
                 friendsList.appendChild(friendEl);
-            });
+            }
         } else {
             friendsList.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No friends yet</div>';
         }
@@ -327,29 +322,30 @@ async function populateFriendDropdown() {
     if (!currentUser) return;
     
     try {
-        const response = await fetch(API_URL + '/friends?userId=' + currentUser.userId);
+        const response = await fetch(`${API_URL}/friends?userId=${currentUser.userId}`);
         const data = await response.json();
         
         const select = document.getElementById('friendSelect');
         select.innerHTML = '<option value="">Select a friend...</option>';
         
         if (data.friends && data.friends.length > 0) {
-            data.friends.forEach(function(friend) {
+            for (const friend of data.friends) {
                 const option = document.createElement('option');
                 option.value = friend.friendId;
                 option.textContent = friend.profileName + ' (' + friend.phoneNumber + ')';
                 select.appendChild(option);
-            });
-            console.log('Loaded ' + data.friends.length + ' friends');
+            }
+            console.log('✓ Loaded ' + data.friends.length + ' friends for dropdown');
         } else {
             const option = document.createElement('option');
             option.value = '';
-            option.textContent = 'No friends yet';
+            option.textContent = 'No friends yet - add some!';
             option.disabled = true;
             select.appendChild(option);
+            console.log('No friends available');
         }
     } catch (error) {
-        console.error('Error loading friends:', error);
+        console.error('Error loading friends for dropdown:', error);
     }
 }
 
@@ -358,8 +354,11 @@ async function populateFriendDropdown() {
 function createChatElement(chat) {
     const div = document.createElement('div');
     div.className = 'item';
-    div.innerHTML = '<div class="item-name">Chat</div><div class="item-subtitle">' + chat.messageCount + ' messages</div>';
-    div.onclick = function() { openChat(chat.chatId); };
+    div.innerHTML = `
+        <div class="item-name">Chat</div>
+        <div class="item-subtitle">${chat.messageCount} messages</div>
+    `;
+    div.onclick = () => openChat(chat.chatId);
     return div;
 }
 
@@ -367,36 +366,37 @@ function openChat(chatId) {
     currentChat = chatId;
     currentGroup = null;
     
-    document.querySelectorAll('.item').forEach(function(item) {
+    document.querySelectorAll('.item').forEach(item => {
         item.classList.remove('active');
     });
-    if (event.target.closest) {
-        event.target.closest('.item').classList.add('active');
-    }
+    event.target.closest('.item').classList.add('active');
     
-    document.getElementById('chatHeader').innerHTML = '<h3>Chat</h3>';
-    document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: #999;">Loading...</div>';
+    document.getElementById('chatHeader').innerHTML = '<h3>💬 Chat</h3>';
+    document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: #999;">Loading messages...</div>';
+    document.getElementById('messageInput').placeholder = 'Type a message...';
+    
+    // Load messages from backend
     loadChatMessages(chatId);
 }
 
 async function loadChatMessages(chatId) {
     try {
-        const response = await fetch(API_URL + '/chats/messages?senderId=' + currentUser.userId);
+        const response = await fetch(`${API_URL}/chats/messages?senderId=${currentUser.userId}`);
         const data = await response.json();
         
         const messagesDiv = document.getElementById('chatMessages');
         messagesDiv.innerHTML = '';
         
         if (data.messages && data.messages.length > 0) {
-            data.messages.forEach(function(msg) {
+            for (const msg of data.messages) {
                 const messageEl = document.createElement('div');
                 messageEl.className = 'message sent';
                 
                 let timeStr = 'just now';
                 if (msg.timestamp) {
                     try {
-                        const msgDate = new Date(msg.timestamp);
-                        timeStr = msgDate.toLocaleTimeString();
+                        const msgDate = typeof msg.timestamp === 'number' ? new Date(msg.timestamp) : new Date();
+                        timeStr = msgDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     } catch (e) {
                         timeStr = 'just now';
                     }
@@ -413,12 +413,15 @@ async function loadChatMessages(chatId) {
                 messageEl.appendChild(bubbleDiv);
                 messageEl.appendChild(timeDiv);
                 messagesDiv.appendChild(messageEl);
-            });
+            }
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            console.log('✓ Loaded ' + data.messages.length + ' messages');
         } else {
-            messagesDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No messages</div>';
+            messagesDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No messages yet. Start the conversation!</div>';
         }
     } catch (error) {
         console.error('Error loading messages:', error);
+        document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: #999;">Error loading messages</div>';
     }
 }
 
@@ -429,9 +432,10 @@ async function sendMessage() {
     
     if (!messageText || !currentUser) return;
     
+    // Show loading state
     const originalHTML = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = 'Sending...';
+    btn.innerHTML = '<span class="spinner"></span>';
     
     try {
         const body = {
@@ -439,16 +443,18 @@ async function sendMessage() {
             content: messageText
         };
         
+        // Determine if it's a group or friend chat
         if (currentGroup) {
             body.groupId = currentGroup;
         } else if (currentFriendId) {
+            // For private chat with friend
             body.receiverId = currentFriendId;
             body.chatId = currentChat;
         } else if (currentChat) {
             body.chatId = currentChat;
         }
         
-        const response = await fetch(API_URL + '/chats/send', {
+        const response = await fetch(`${API_URL}/chats/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
@@ -460,6 +466,7 @@ async function sendMessage() {
             input.value = '';
             btn.disabled = false;
             btn.innerHTML = originalHTML;
+            // Reload messages based on context
             if (currentGroup) {
                 await loadGroupMessages(currentGroup);
             } else if (currentFriendId) {
@@ -470,12 +477,13 @@ async function sendMessage() {
         } else {
             btn.disabled = false;
             btn.innerHTML = originalHTML;
-            alert('Failed to send message');
+            alert('✗ Failed to send message: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error sending message:', error);
         btn.disabled = false;
         btn.innerHTML = originalHTML;
+        alert('✗ Error sending message');
     }
 }
 
@@ -484,108 +492,185 @@ async function sendMessage() {
 function createGroupElement(group) {
     const div = document.createElement('div');
     div.className = 'item';
-    div.innerHTML = '<div class="item-name">' + group.groupName + '</div><div class="item-subtitle">' + group.memberCount + ' members</div>';
-    div.onclick = function() { openGroup(group.groupId, group.groupName); };
+    div.innerHTML = `
+        <div class="item-name">${group.groupName}</div>
+        <div class="item-subtitle">${group.memberCount} members</div>
+    `;
+    div.onclick = () => openGroup(group.groupId, group.groupName);
     return div;
 }
 
 function openGroup(groupId, groupName) {
     currentGroup = groupId;
     currentChat = null;
+    currentFriendId = null;
+    currentFriendName = null;
     
-    document.querySelectorAll('.item').forEach(function(item) {
+    document.querySelectorAll('.item').forEach(item => {
         item.classList.remove('active');
     });
-    if (event.target.closest) {
-        event.target.closest('.item').classList.add('active');
-    }
+    event.target.closest('.item').classList.add('active');
     
-    document.getElementById('chatHeader').innerHTML = '<h3>' + groupName + '</h3>';
-    document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: #999;">Loading...</div>';
+    document.getElementById('chatHeader').innerHTML = `<h3>👥 ${groupName}</h3>`;
+    document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: #999;">Loading group messages...</div>';
+    document.getElementById('messageInput').placeholder = 'Send a message to group...';
+    
+    // Load group messages
     loadGroupMessages(groupId);
 }
 
-async function loadGroupMessages(groupId) {
-    try {
-        const response = await fetch(API_URL + '/chats/messages?groupId=' + groupId);
-        const data = await response.json();
-        
-        const messagesDiv = document.getElementById('chatMessages');
-        messagesDiv.innerHTML = '';
-        
-        if (data.messages && data.messages.length > 0) {
-            data.messages.forEach(function(msg) {
-                const messageEl = document.createElement('div');
-                messageEl.className = 'message ' + (msg.senderId === currentUser.userId ? 'sent' : 'received');
-                
-                const bubbleDiv = document.createElement('div');
-                bubbleDiv.className = 'message-bubble';
-                bubbleDiv.textContent = msg.content;
-                
-                messageEl.appendChild(bubbleDiv);
-                messagesDiv.appendChild(messageEl);
-            });
-        } else {
-            messagesDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No messages</div>';
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-// ==================== Friend Functions ====================
+// ==================== Friends Functions ====================
 
 function createFriendElement(friend) {
     const div = document.createElement('div');
     div.className = 'item';
-    div.innerHTML = '<div class="item-name">' + friend.profileName + '</div><div class="item-subtitle">' + friend.phoneNumber + '</div>';
-    div.onclick = function() { openFriendChat(friend.friendId, friend.profileName); };
+    div.innerHTML = `
+        <div class="item-name">${friend.profileName}</div>
+        <div class="item-subtitle">${friend.phoneNumber}</div>
+    `;
+    div.onclick = () => {
+        document.querySelectorAll('.item').forEach(item => {
+            item.classList.remove('active');
+        });
+        div.classList.add('active');
+        openChatWithFriend(friend.profileName, friend.friendId);
+    };
     return div;
 }
 
-function openFriendChat(friendId, friendName) {
+function openChatWithFriend(friendName, friendId) {
+    currentChat = 'friend_' + friendId;
     currentFriendId = friendId;
     currentFriendName = friendName;
-    currentChat = null;
     currentGroup = null;
     
-    document.querySelectorAll('.item').forEach(function(item) {
-        item.classList.remove('active');
-    });
-    if (event.target.closest) {
-        event.target.closest('.item').classList.add('active');
-    }
+    document.getElementById('chatHeader').innerHTML = `<h3>💬 ${friendName}</h3>`;
+    document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: #999;">Loading messages...</div>';
+    document.getElementById('messageInput').placeholder = `Send message to ${friendName}...`;
     
-    document.getElementById('chatHeader').innerHTML = '<h3>' + friendName + '</h3>';
-    document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: #999;">Loading...</div>';
     loadFriendMessages(friendId);
 }
 
 async function loadFriendMessages(friendId) {
     try {
-        const response = await fetch(API_URL + '/chats/messages?senderId=' + currentUser.userId + '&groupId=' + friendId);
+        // Fetch messages for chat with this specific friend
+        const response = await fetch(`${API_URL}/chats/messages?senderId=${currentUser.userId}&groupId=${friendId}`);
         const data = await response.json();
         
         const messagesDiv = document.getElementById('chatMessages');
         messagesDiv.innerHTML = '';
         
         if (data.messages && data.messages.length > 0) {
-            data.messages.forEach(function(msg) {
+            for (const msg of data.messages) {
+                const msgEl = document.createElement('div');
+                
+                // Check if this message is from current user or friend
+                const isFromCurrentUser = msg.senderId === currentUser.userId;
+                msgEl.className = isFromCurrentUser ? 'message sent' : 'message received';
+                
+                msgEl.innerHTML = `
+                    <div class="message-content">${msg.content}</div>
+                    <div class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                `;
+                messagesDiv.appendChild(msgEl);
+            }
+            // Scroll to bottom
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        } else {
+            messagesDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No messages yet. Start a conversation!</div>';
+        }
+    } catch (error) {
+        console.error('Error loading friend messages:', error);
+        document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: red;">Error loading messages</div>';
+    }
+} 
+                msg.senderId === currentUser.userId || msg.senderId === friendId
+            );
+        }
+        
+        if (friendMessages.length > 0) {
+            for (const msg of friendMessages) {
                 const messageEl = document.createElement('div');
-                messageEl.className = 'message ' + (msg.senderId === currentUser.userId ? 'sent' : 'received');
+                const isSent = msg.senderId === currentUser.userId;
+                messageEl.className = 'message ' + (isSent ? 'sent' : 'received');
+                
+                let timeStr = 'just now';
+                if (msg.timestamp) {
+                    try {
+                        const msgDate = typeof msg.timestamp === 'number' ? new Date(msg.timestamp) : new Date();
+                        timeStr = msgDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    } catch (e) {
+                        timeStr = 'just now';
+                    }
+                }
                 
                 const bubbleDiv = document.createElement('div');
                 bubbleDiv.className = 'message-bubble';
                 bubbleDiv.textContent = msg.content;
                 
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'message-time';
+                timeDiv.textContent = timeStr;
+                
                 messageEl.appendChild(bubbleDiv);
+                messageEl.appendChild(timeDiv);
                 messagesDiv.appendChild(messageEl);
-            });
+            }
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            console.log('✓ Loaded ' + friendMessages.length + ' messages with ' + currentFriendName);
         } else {
-            messagesDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No messages</div>';
+            messagesDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No messages yet. Start the conversation!</div>';
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error loading friend messages:', error);
+        document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: #999;">Error loading messages</div>';
+    }
+}
+
+async function loadGroupMessages(groupId) {
+    try {
+        const response = await fetch(`${API_URL}/chats/messages?groupId=${groupId}`);
+        const data = await response.json();
+        
+        const messagesDiv = document.getElementById('chatMessages');
+        messagesDiv.innerHTML = '';
+        
+        if (data.messages && data.messages.length > 0) {
+            for (const msg of data.messages) {
+                const messageEl = document.createElement('div');
+                const isSent = msg.senderId === currentUser.userId;
+                messageEl.className = 'message ' + (isSent ? 'sent' : 'received');
+                
+                let timeStr = 'just now';
+                if (msg.timestamp) {
+                    try {
+                        const msgDate = typeof msg.timestamp === 'number' ? new Date(msg.timestamp) : new Date();
+                        timeStr = msgDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    } catch (e) {
+                        timeStr = 'just now';
+                    }
+                }
+                
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = 'message-bubble';
+                bubbleDiv.textContent = msg.content;
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'message-time';
+                timeDiv.textContent = timeStr;
+                
+                messageEl.appendChild(bubbleDiv);
+                messageEl.appendChild(timeDiv);
+                messagesDiv.appendChild(messageEl);
+            }
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            console.log('✓ Loaded ' + data.messages.length + ' group messages');
+        } else {
+            messagesDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No messages yet. Start the conversation!</div>';
+        }
+    } catch (error) {
+        console.error('Error loading group messages:', error);
+        document.getElementById('chatMessages').innerHTML = '<div style="padding: 20px; color: #999;">Error loading messages</div>';
     }
 }
 
@@ -598,7 +683,7 @@ function showDialog(dialogId) {
 
 function closeDialog() {
     document.getElementById('dialog-overlay').classList.remove('show');
-    document.querySelectorAll('.dialog').forEach(function(dialog) {
+    document.querySelectorAll('.dialog').forEach(dialog => {
         dialog.classList.remove('show');
     });
 }
@@ -608,6 +693,7 @@ function showNewChatDialog() {
 }
 
 function showCreateGroupDialog() {
+    // Load friends list for member selection
     loadFriendsForGroupCreation();
     showDialog('createGroupDialog');
 }
@@ -616,25 +702,28 @@ async function loadFriendsForGroupCreation() {
     if (!currentUser) return;
     
     try {
-        const response = await fetch(API_URL + '/friends?userId=' + currentUser.userId);
+        const response = await fetch(`${API_URL}/friends?userId=${currentUser.userId}`);
         const data = await response.json();
         
         const membersList = document.getElementById('membersList');
         membersList.innerHTML = '';
         
         if (data.friends && data.friends.length > 0) {
-            data.friends.forEach(function(friend) {
+            for (const friend of data.friends) {
                 const checkbox = document.createElement('div');
                 checkbox.style.padding = '8px';
                 checkbox.style.borderBottom = '1px solid #eee';
-                checkbox.innerHTML = '<input type="checkbox" class="member-checkbox" value="' + friend.friendId + '"><span>' + friend.profileName + '</span>';
+                checkbox.innerHTML = `
+                    <input type="checkbox" class="member-checkbox" value="${friend.friendId}" data-name="${friend.profileName}">
+                    <span>${friend.profileName} (${friend.phoneNumber})</span>
+                `;
                 membersList.appendChild(checkbox);
-            });
+            }
         } else {
-            membersList.innerHTML = '<div style="padding: 10px; color: #999;">No friends</div>';
+            membersList.innerHTML = '<div style="padding: 10px; color: #999;">No friends to add</div>';
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error loading friends for group:', error);
     }
 }
 
@@ -651,9 +740,10 @@ async function createNewChat() {
         return;
     }
     
+    // Create or open chat with friend
     closeDialog();
     await refreshChats();
-    alert('Chat started!');
+    alert('✓ Chat started!');
 }
 
 async function createNewGroup() {
@@ -664,15 +754,15 @@ async function createNewGroup() {
         return;
     }
     
+    // Get selected members
     const checkboxes = document.querySelectorAll('.member-checkbox:checked');
-    const members = [];
-    checkboxes.forEach(function(cb) {
-        members.push(cb.value);
-    });
+    const members = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Add current user to members
     members.push(currentUser.userId);
     
     try {
-        const response = await fetch(API_URL + '/groups/create', {
+        const response = await fetch(`${API_URL}/groups/create`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -685,14 +775,16 @@ async function createNewGroup() {
         const data = await response.json();
         
         if (data.success) {
-            alert('Group created!');
+            alert('✓ Group created successfully!');
+            document.getElementById('groupNameInput').value = '';
             closeDialog();
             await refreshGroups();
         } else {
-            alert('Failed to create group');
+            alert('✗ Failed to create group');
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error creating group:', error);
+        alert('✗ Error creating group');
     }
 }
 
@@ -705,7 +797,7 @@ async function addFriend() {
     }
     
     try {
-        const response = await fetch(API_URL + '/friends/add', {
+        const response = await fetch(`${API_URL}/friends/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -717,7 +809,8 @@ async function addFriend() {
         const data = await response.json();
         
         if (data.success) {
-            alert('Friend added!');
+            alert('✓ Friend added successfully!');
+            document.getElementById('friendPhoneInput').value = '';
             closeDialog();
             await refreshFriends();
             await populateFriendDropdown();
@@ -725,27 +818,35 @@ async function addFriend() {
             alert(data.message);
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error adding friend:', error);
+        alert('✗ Error adding friend');
     }
 }
 
 async function showProfile() {
     try {
-        const response = await fetch(API_URL + '/profile?userId=' + currentUser.userId);
+        const response = await fetch(`${API_URL}/profile?userId=${currentUser.userId}`);
         const data = await response.json();
         
         const profileContent = document.getElementById('profileContent');
-        profileContent.innerHTML = '<p><strong>Name:</strong> ' + data.profileName + '</p><p><strong>Phone:</strong> ' + data.phoneNumber + '</p>';
+        profileContent.innerHTML = `
+            <p><strong>Name:</strong> ${data.profileName}</p>
+            <p><strong>Phone:</strong> ${data.phoneNumber}</p>
+            <p><strong>Friends:</strong> ${data.friendCount}</p>
+            <p><strong>Chats:</strong> ${data.chatCount}</p>
+            <p><strong>Groups:</strong> ${data.groupCount}</p>
+        `;
         
         showDialog('profileDialog');
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error loading profile:', error);
+        alert('✗ Error loading profile');
     }
 }
 
-// Dialog overlay click handler
+// Close dialog on overlay click
 document.addEventListener('click', function(event) {
-    if (event.target && event.target.id === 'dialog-overlay') {
+    if (event.target.id === 'dialog-overlay') {
         closeDialog();
     }
 });

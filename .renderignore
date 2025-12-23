@@ -1,0 +1,17 @@
+# Ignore unnecessary files for Render deployment
+.git
+.gitignore
+*.md
+.vscode
+.idea
+*.iml
+
+# Backend build artifacts (will be rebuilt on Render)
+backend/target/
+
+# Frontend (deployed separately)
+# Uncomment if deploying backend only
+# frontend/
+
+# Test files
+backend/src/test/

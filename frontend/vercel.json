@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "name": "whatsapp-frontend",
+  "builds": [
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/public/index.html"
+    }
+  ],
+  "env": {
+    "BACKEND_URL": "https://whatsapp-backend.onrender.com/api"
+  }
+}

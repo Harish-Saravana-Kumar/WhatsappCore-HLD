@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp - Chat Application</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="env.js"></script>
+    <script src="config.js"></script>
 </head>
 <body>
     <!-- Login Screen -->
@@ -60,8 +62,12 @@
             
             <!-- Main Content -->
             <div class="main-content">
-                <!-- Sidebar -->
+            <!-- Sidebar -->
                 <div class="sidebar">
+                    <div class="search-container" style="padding: 10px; border-bottom: 1px solid #e0e0e0;">
+                        <input type="text" class="search-bar" id="sidebarSearch" placeholder="🔍 Search..." style="width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 25px; background-color: #f5f5f5; font-size: 13px;">
+                    </div>
+                    
                     <div class="tabs-container">
                         <button class="tab-button active" onclick="switchSidebar('chats')">💬 Chats</button>
                         <button class="tab-button" onclick="switchSidebar('groups')">👥 Groups</button>

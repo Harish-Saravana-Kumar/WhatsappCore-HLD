@@ -1,0 +1,39 @@
+// Configuration - Automatically detects environment
+const CONFIG = {
+    // Detects environment and uses appropriate URLs
+    API_URL: (() => {
+        if (window.location.hostname === 'localhost') {
+            return 'http://localhost:8080/api';
+        }
+        // Use environment variable if available (Vercel), otherwise use default Render URL
+        return window.ENV_BACKEND_URL || 'https://whatsapp-backend.onrender.com/api';
+    })(),
+    
+    WS_URL: (() => {
+        if (window.location.hostname === 'localhost') {
+            return 'ws://localhost:8081';
+        }
+        // Use environment variable if available (Vercel), otherwise use default Render URL
+        const backendUrl = window.ENV_BACKEND_URL || 'https://whatsapp-backend.onrender.com';
+        return backendUrl.replace('https://', 'wss://').replace('/api', '') + ':8081';
+    })()
+};
+
+// Global state
+let currentUser = null;
+let currentChat = null;
+let currentGroup = null;
+let currentFriendId = null;
+let currentFriendName = null;
+const API_URL = CONFIG.API_URL;
+let filteredChats = [];
+let filteredGroups = [];
+let filteredFriends = [];
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✓ WhatsApp Frontend loaded');
+    console.log('API URL:', CONFIG.API_URL);
+    console.log('WebSocket URL:', CONFIG.WS_URL);
+    setupSearchListeners();
+});
