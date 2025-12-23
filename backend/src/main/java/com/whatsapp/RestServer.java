@@ -145,8 +145,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -185,8 +184,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -573,7 +571,14 @@ public class RestServer {
     private void enableCORS(HttpExchange exchange) {
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    }
+    
+    private void handleOptions(HttpExchange exchange) throws IOException {
+        enableCORS(exchange);
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.sendResponseHeaders(200, 0);
+        exchange.close();
     }
     
     private void sendResponse(HttpExchange exchange, String response) throws IOException {
@@ -590,6 +595,8 @@ public class RestServer {
         error.put("error", message);
         String response = error.toString();
         byte[] responseBytes = response.getBytes();
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
         exchange.sendResponseHeaders(code, responseBytes.length);
         exchange.getResponseBody().write(responseBytes);
         exchange.close();
