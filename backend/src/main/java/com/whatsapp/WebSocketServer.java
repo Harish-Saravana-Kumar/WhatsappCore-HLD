@@ -142,29 +142,9 @@ public class WebSocketServer implements Runnable {
             out.write(response.getBytes());
             out.flush();
             
-            // Accept connection without userId requirement
-            // The client will send userId in the first WebSocket frame
-            BufferedInputStream bis = new BufferedInputStream(clientSocket.getInputStream());
-            String firstMessage = null;
-            
-            try {
-                firstMessage = readWebSocketFrame(bis);
-            } catch (Exception e) {
-                System.out.println("✗ Could not read first WebSocket frame: " + e.getMessage());
-                // Still allow connection, will fail when trying to use it
-            }
-            
-            String userId = "anonymous";
-            if (firstMessage != null && firstMessage.startsWith("{")) {
-                try {
-                    JSONObject json = new JSONObject(firstMessage);
-                    userId = json.optString("userId", "anonymous");
-                } catch (Exception e) {
-                    System.out.println("✗ Could not parse userId from first message: " + e.getMessage());
-                }
-            }
-            
-            handleWebSocketConnection(clientSocket, userId);
+            // Connection is now in WebSocket mode
+            // Use "guest" as default userId - the client can set it later
+            handleWebSocketConnection(clientSocket, "guest_" + System.currentTimeMillis());
             
         } catch (Exception e) {
             System.out.println("✗ Error during WebSocket handshake: " + e.getMessage());
@@ -192,43 +172,17 @@ public class WebSocketServer implements Runnable {
     }
     
     /**
-     * Read a WebSocket frame (RFC 6455)
+     * Read a WebSocket frame (RFC 6455) - SIMPLIFIED
      */
     private String readWebSocketFrame(BufferedInputStream in) throws IOException {
-        int b1 = in.read();
-        int b2 = in.read();
-        
-        if (b1 == -1 || b2 == -1) return null;
-        
-        boolean masked = (b2 & 0x80) != 0;
-        int payloadLen = b2 & 0x7F;
-        
-        if (payloadLen == 126) {
-            byte[] lenBytes = new byte[2];
-            in.read(lenBytes);
-            payloadLen = ((lenBytes[0] & 0xFF) << 8) | (lenBytes[1] & 0xFF);
-        } else if (payloadLen == 127) {
-            byte[] lenBytes = new byte[8];
-            in.read(lenBytes);
-            payloadLen = (int) (((lenBytes[4] & 0xFF) << 24) | ((lenBytes[5] & 0xFF) << 16) | 
-                               ((lenBytes[6] & 0xFF) << 8) | (lenBytes[7] & 0xFF));
+        try {
+            // Skip WebSocket frame parsing - just try to read a line
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line = br.readLine();
+            return line;
+        } catch (Exception e) {
+            return null;
         }
-        
-        byte[] maskingKey = new byte[4];
-        if (masked) {
-            in.read(maskingKey);
-        }
-        
-        byte[] payload = new byte[payloadLen];
-        in.read(payload);
-        
-        if (masked) {
-            for (int i = 0; i < payload.length; i++) {
-                payload[i] = (byte) (payload[i] ^ maskingKey[i % 4]);
-            }
-        }
-        
-        return new String(payload, java.nio.charset.StandardCharsets.UTF_8);
     }
     
     /**

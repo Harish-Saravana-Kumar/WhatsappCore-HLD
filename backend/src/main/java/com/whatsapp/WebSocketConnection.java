@@ -65,6 +65,17 @@ public class WebSocketConnection {
      */
     private void handleMessage(String messageStr) {
         try {
+            // Skip empty or invalid messages
+            if (messageStr == null || messageStr.trim().isEmpty()) {
+                return;
+            }
+            
+            // Skip if not JSON
+            if (!messageStr.trim().startsWith("{")) {
+                System.out.println("✗ Received non-JSON message, skipping: " + messageStr.substring(0, Math.min(50, messageStr.length())));
+                return;
+            }
+            
             JSONObject json = new JSONObject(messageStr);
             String type = json.getString("type");
             
