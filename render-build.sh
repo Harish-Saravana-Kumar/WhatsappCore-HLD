@@ -3,9 +3,29 @@ set -e
 
 echo "Building WhatsApp Backend for Render..."
 
-# Set JAVA_HOME (Render provides Java)
-export JAVA_HOME=/opt/render/project/.render/java/jdk-17.0.1
-export PATH=$JAVA_HOME/bin:$PATH
+# Find and set JAVA_HOME
+if [ -z "$JAVA_HOME" ]; then
+    echo "Detecting Java installation..."
+    # Try common locations
+    if [ -d "/usr/lib/jvm/java-17-openjdk-amd64" ]; then
+        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    elif [ -d "/usr/lib/jvm/java-11-openjdk-amd64" ]; then
+        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+    elif [ -d "/opt/java/openjdk" ]; then
+        export JAVA_HOME=/opt/java/openjdk
+    else
+        # Try to find java executable
+        JAVA_PATH=$(which java 2>/dev/null || find /usr /opt -name java -type f 2>/dev/null | head -1)
+        if [ -n "$JAVA_PATH" ]; then
+            export JAVA_HOME=$(dirname $(dirname $JAVA_PATH))
+        fi
+    fi
+    
+    if [ -n "$JAVA_HOME" ]; then
+        export PATH=$JAVA_HOME/bin:$PATH
+        echo "JAVA_HOME set to: $JAVA_HOME"
+    fi
+fi
 
 # Verify Java installation
 echo "Java version:"
