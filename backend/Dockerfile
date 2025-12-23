@@ -1,7 +1,8 @@
 # Build stage: use Maven to build the app
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
-COPY . .
+COPY backend/pom.xml .
+COPY backend/src src
 RUN mvn clean package -DskipTests
 
 # Run stage: use a lightweight JRE
