@@ -72,7 +72,7 @@ public class WebSocketServer implements Runnable {
             BufferedInputStream bis = new BufferedInputStream(clientSocket.getInputStream());
             BufferedReader in = new BufferedReader(new InputStreamReader(bis));
             
-            // Read first line to check if it's HTTP upgrade or raw data
+            // Read first line to check if it's HTTP or WebSocket
             in.mark(1024);
             String firstLine = in.readLine();
             if (firstLine == null) {
@@ -80,12 +80,17 @@ public class WebSocketServer implements Runnable {
                 return;
             }
             
-            // Check if this is an HTTP WebSocket upgrade request
-            if (firstLine.startsWith("GET") || firstLine.startsWith("POST") || firstLine.startsWith("HTTP")) {
+            // Handle HTTP health checks (HEAD, GET for /health, etc)
+            if (firstLine.startsWith("HEAD") || firstLine.startsWith("GET")) {
+                handleHealthCheck(clientSocket, in, firstLine);
+            } 
+            // Handle WebSocket upgrade (GET with Upgrade header)
+            else if (firstLine.startsWith("GET")) {
                 in.reset();
                 handleWebSocketUpgrade(clientSocket, in);
-            } else if (firstLine.startsWith("{")) {
-                // This is raw JSON - legacy support
+            } 
+            // Handle raw JSON (legacy support)
+            else if (firstLine.startsWith("{")) {
                 try {
                     JSONObject json = new JSONObject(firstLine);
                     String userId = json.getString("userId");
@@ -94,9 +99,9 @@ public class WebSocketServer implements Runnable {
                     System.out.println("✗ Invalid JSON from client: " + e.getMessage());
                     clientSocket.close();
                 }
-            } else {
-                // Unknown format - just close
-                System.out.println("✗ Unexpected data format from client: " + firstLine.substring(0, Math.min(50, firstLine.length())));
+            } 
+            // Unknown format
+            else {
                 clientSocket.close();
             }
         } catch (IOException e) {
@@ -104,6 +109,38 @@ public class WebSocketServer implements Runnable {
             try {
                 clientSocket.close();
             } catch (IOException ex) {
+                // ignore
+            }
+        }
+    }
+    
+    /**
+     * Handle HTTP health check requests from Render
+     */
+    private void handleHealthCheck(Socket clientSocket, BufferedReader in, String firstLine) throws IOException {
+        // Read and discard headers
+        String line;
+        while ((line = in.readLine()) != null && !line.trim().isEmpty()) {
+            // discard
+        }
+        
+        try {
+            // Send HTTP 200 response
+            OutputStream out = clientSocket.getOutputStream();
+            String response = "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: text/plain\r\n" +
+                            "Content-Length: 2\r\n" +
+                            "Connection: close\r\n" +
+                            "\r\n" +
+                            "OK";
+            out.write(response.getBytes());
+            out.flush();
+        } catch (IOException e) {
+            System.out.println("✗ Error sending health check response: " + e.getMessage());
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
                 // ignore
             }
         }
