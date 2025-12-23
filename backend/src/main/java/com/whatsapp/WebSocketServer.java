@@ -69,9 +69,11 @@ public class WebSocketServer implements Runnable {
      */
     private void handleClient(Socket clientSocket) {
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            BufferedInputStream bis = new BufferedInputStream(clientSocket.getInputStream());
+            BufferedReader in = new BufferedReader(new InputStreamReader(bis));
             
-            // Read first line to check if it's HTTP upgrade or raw JSON
+            // Read first line to check if it's HTTP upgrade or raw data
+            in.mark(1024);
             String firstLine = in.readLine();
             if (firstLine == null) {
                 clientSocket.close();
@@ -79,19 +81,23 @@ public class WebSocketServer implements Runnable {
             }
             
             // Check if this is an HTTP WebSocket upgrade request
-            if (firstLine.startsWith("GET") || firstLine.startsWith("POST")) {
-                // This is an HTTP request - handle WebSocket upgrade
-                handleWebSocketUpgrade(clientSocket, in, firstLine);
-            } else {
+            if (firstLine.startsWith("GET") || firstLine.startsWith("POST") || firstLine.startsWith("HTTP")) {
+                in.reset();
+                handleWebSocketUpgrade(clientSocket, in);
+            } else if (firstLine.startsWith("{")) {
                 // This is raw JSON - legacy support
                 try {
                     JSONObject json = new JSONObject(firstLine);
                     String userId = json.getString("userId");
                     handleWebSocketConnection(clientSocket, userId);
                 } catch (Exception e) {
-                    System.out.println("✗ Error handling client: " + e.getMessage());
+                    System.out.println("✗ Invalid JSON from client: " + e.getMessage());
                     clientSocket.close();
                 }
+            } else {
+                // Unknown format - just close
+                System.out.println("✗ Unexpected data format from client: " + firstLine.substring(0, Math.min(50, firstLine.length())));
+                clientSocket.close();
             }
         } catch (IOException e) {
             System.out.println("✗ Error handling client: " + e.getMessage());
@@ -106,47 +112,68 @@ public class WebSocketServer implements Runnable {
     /**
      * Handle WebSocket HTTP upgrade
      */
-    private void handleWebSocketUpgrade(Socket clientSocket, BufferedReader in, String firstLine) throws IOException {
-        // Read all headers
+    private void handleWebSocketUpgrade(Socket clientSocket, BufferedReader in) throws IOException {
         String line;
         String secWebSocketKey = null;
-        while ((line = in.readLine()) != null && !line.isEmpty()) {
-            if (line.toLowerCase().startsWith("sec-websocket-key:")) {
+        
+        // Read all headers until empty line
+        while ((line = in.readLine()) != null && !line.trim().isEmpty()) {
+            String lowerLine = line.toLowerCase();
+            if (lowerLine.startsWith("sec-websocket-key:")) {
                 secWebSocketKey = line.substring("sec-websocket-key:".length()).trim();
             }
         }
         
-        if (secWebSocketKey == null) {
+        if (secWebSocketKey == null || secWebSocketKey.isEmpty()) {
+            System.out.println("✗ No Sec-WebSocket-Key in request");
             clientSocket.close();
             return;
         }
         
-        // Send WebSocket handshake response
-        String acceptKey = generateWebSocketAcceptKey(secWebSocketKey);
-        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-        out.println("HTTP/1.1 101 Switching Protocols");
-        out.println("Upgrade: websocket");
-        out.println("Connection: Upgrade");
-        out.println("Sec-WebSocket-Accept: " + acceptKey);
-        out.println();
-        out.flush();
-        
-        // Extract userId from first WebSocket frame
         try {
+            // Send WebSocket handshake response
+            String acceptKey = generateWebSocketAcceptKey(secWebSocketKey);
+            OutputStream out = clientSocket.getOutputStream();
+            String response = "HTTP/1.1 101 Switching Protocols\r\n" +
+                            "Upgrade: websocket\r\n" +
+                            "Connection: Upgrade\r\n" +
+                            "Sec-WebSocket-Accept: " + acceptKey + "\r\n" +
+                            "\r\n";
+            out.write(response.getBytes());
+            out.flush();
+            
+            // Accept connection without userId requirement
+            // The client will send userId in the first WebSocket frame
             BufferedInputStream bis = new BufferedInputStream(clientSocket.getInputStream());
-            String messageData = readWebSocketFrame(bis);
-            if (messageData != null) {
-                JSONObject json = new JSONObject(messageData);
-                String userId = json.optString("userId");
-                if (userId != null && !userId.isEmpty()) {
-                    handleWebSocketConnection(clientSocket, userId);
-                    return;
+            String firstMessage = null;
+            
+            try {
+                firstMessage = readWebSocketFrame(bis);
+            } catch (Exception e) {
+                System.out.println("✗ Could not read first WebSocket frame: " + e.getMessage());
+                // Still allow connection, will fail when trying to use it
+            }
+            
+            String userId = "anonymous";
+            if (firstMessage != null && firstMessage.startsWith("{")) {
+                try {
+                    JSONObject json = new JSONObject(firstMessage);
+                    userId = json.optString("userId", "anonymous");
+                } catch (Exception e) {
+                    System.out.println("✗ Could not parse userId from first message: " + e.getMessage());
                 }
             }
+            
+            handleWebSocketConnection(clientSocket, userId);
+            
         } catch (Exception e) {
-            System.out.println("✗ Error reading WebSocket frame: " + e.getMessage());
+            System.out.println("✗ Error during WebSocket handshake: " + e.getMessage());
+            try {
+                clientSocket.close();
+            } catch (IOException ex) {
+                // ignore
+            }
         }
-        clientSocket.close();
     }
     
     /**
