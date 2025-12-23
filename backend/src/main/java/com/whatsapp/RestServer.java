@@ -87,8 +87,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -229,8 +228,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -259,8 +257,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -293,8 +290,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -376,8 +372,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -409,8 +404,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             enableCORS(exchange);
@@ -453,8 +447,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -491,8 +484,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -543,8 +535,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
@@ -609,8 +600,7 @@ public class RestServer {
             enableCORS(exchange);
             
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(200, -1);
-                exchange.close();
+                handleOptions(exchange);
                 return;
             }
             
